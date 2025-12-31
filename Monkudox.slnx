@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="Monkudox.vcxproj" Id="7e8b8fe2-480b-483f-9f21-9625242ead3a" />
+</Solution>
