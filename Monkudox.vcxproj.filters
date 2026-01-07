@@ -5,13 +5,19 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Archivos de encabezado">
-      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
-      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
-    </Filter>
     <Filter Include="Archivos de recursos">
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Headers\ImGui">
+      <UniqueIdentifier>{0cf4cf39-0d9e-4ae5-bd59-0c0377b8f5c1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Archivos de origen\ImGui">
+      <UniqueIdentifier>{65a3f962-d892-411c-a879-edb2b4682633}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -42,60 +48,150 @@
     <ClCompile Include="renderBuffers.cpp">
       <Filter>Archivos de origen</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="default.frag">
-      <Filter>Archivos de recursos</Filter>
-    </None>
-    <None Include="default.vert">
-      <Filter>Archivos de recursos</Filter>
-    </None>
-    <None Include="light.frag">
-      <Filter>Archivos de recursos</Filter>
-    </None>
-    <None Include="light.vert">
-      <Filter>Archivos de recursos</Filter>
-    </None>
-    <None Include="outline.frag">
-      <Filter>Archivos de recursos</Filter>
-    </None>
-    <None Include="outline.vert">
-      <Filter>Archivos de recursos</Filter>
-    </None>
-    <None Include="framebuffer.frag">
-      <Filter>Archivos de recursos</Filter>
-    </None>
-    <None Include="framebuffer.vert">
-      <Filter>Archivos de recursos</Filter>
-    </None>
-    <None Include="skybox.vert">
-      <Filter>Archivos de recursos</Filter>
-    </None>
-    <None Include="skybox.frag">
-      <Filter>Archivos de recursos</Filter>
-    </None>
+    <ClCompile Include="Scripts\GameManager.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="GameObject.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="Postprocessing.h">
+      <Filter>Headers</Filter>
+    </ClCompile>
+    <ClCompile Include="Postprocessing.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
+    <ClCompile Include="Stuff.h">
+      <Filter>Headers</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui.cpp">
+      <Filter>Archivos de origen\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_demo.cpp">
+      <Filter>Archivos de origen\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_draw.cpp">
+      <Filter>Archivos de origen\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_impl_glfw.cpp">
+      <Filter>Archivos de origen\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_impl_opengl3.cpp">
+      <Filter>Archivos de origen\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_tables.cpp">
+      <Filter>Archivos de origen\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGui\imgui_widgets.cpp">
+      <Filter>Archivos de origen\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Editor.cpp">
+      <Filter>Archivos de origen</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="shaderClass.h">
-      <Filter>Archivos de encabezado</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="texture.h">
-      <Filter>Archivos de encabezado</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="camera.h">
-      <Filter>Archivos de encabezado</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="mesh.h">
-      <Filter>Archivos de encabezado</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="model.h">
-      <Filter>Archivos de encabezado</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="renderBuffers.h">
-      <Filter>Archivos de encabezado</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="AudioManager.h">
-      <Filter>Archivos de encabezado</Filter>
+      <Filter>Headers</Filter>
     </ClInclude>
+    <ClInclude Include="GameObject.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="monkudox.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="SkyBox.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Time.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imconfig.h">
+      <Filter>Headers\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imgui.h">
+      <Filter>Headers\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imgui_impl_glfw.h">
+      <Filter>Headers\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imgui_impl_opengl3.h">
+      <Filter>Headers\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imgui_internal.h">
+      <Filter>Headers\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imstb_rectpack.h">
+      <Filter>Headers\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imstb_textedit.h">
+      <Filter>Headers\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imstb_truetype.h">
+      <Filter>Headers\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="ImGui\imgui_impl_opengl3_loader.h">
+      <Filter>Headers\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Editor.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\default.frag">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="Shaders\default.geom">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="Shaders\default.vert">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="Shaders\framebuffer.frag">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="Shaders\framebuffer.vert">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="Shaders\light.frag">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="Shaders\light.vert">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="Shaders\normals.frag">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="Shaders\normals.geom">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="Shaders\outline.frag">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="Shaders\outline.vert">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="Shaders\skybox.frag">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="Shaders\skybox.vert">
+      <Filter>Archivos de recursos</Filter>
+    </None>
   </ItemGroup>
 </Project>

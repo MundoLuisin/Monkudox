@@ -12,7 +12,8 @@ void Model::loadModel(std::string path)
         aiProcess_FlipUVs |
         aiProcess_GenNormals |
         aiProcess_CalcTangentSpace |
-        aiProcess_PreTransformVertices);  // (o quítalo como te dije antes)
+        aiProcess_FlipWindingOrder |
+        aiProcess_PreTransformVertices);
 
     if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
