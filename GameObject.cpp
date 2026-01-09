@@ -1,15 +1,17 @@
-/*#include "GameObject.h"
+#include "GameObject.h"
 
 void GameObject::SetActive(bool active)
 {
 	isActive = active;
 }
 
-GameObject::GameObject(const std::string& objName, const char* path ,Shader& programShader, Camera& globalCamera) : name(objName), shader(programShader), camera(globalCamera)
+GameObject::GameObject(const std::string& objName, const char* path, Shader& programShader, Camera& globalCamera)
+    : name(objName),
+    shader(programShader),
+    camera(globalCamera),
+    model(path)
 {
-	isActive = true;
-	Model newModel(path);
-	model = newModel;
+    isActive = true;
 }
 
 void GameObject::Render()
@@ -19,7 +21,7 @@ void GameObject::Render()
 		model.Draw(shader, camera, transform.matrix);
     }
 }
-
+/*
 template<typename T>
 T* GameObject::AddComponent() {
     T* newComponent = new T();

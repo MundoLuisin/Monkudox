@@ -91,35 +91,38 @@ int main()
 
 	Time time;
 
-	Model model1("./Assets/models/1/Cirno.glb");
-	Model model2("./Assets/models/2/Gooboo.glb");
-	Model model3("./Assets/models/3/Boogoo.glb");
-	Model model5("./Assets/models/5/Plane.glb");
+	std::vector<GameObject>allGameObjects;
 
+	allGameObjects.emplace_back("Cirno", "./Assets/models/1/Cirno.glb", shaderProgram, camera);
+	allGameObjects.emplace_back("Gooboo", "./Assets/models/2/Gooboo.glb", shaderProgram, camera);
+	allGameObjects.emplace_back("Boogoo", "./Assets/models/3/Boogoo.glb", shaderProgram, camera);
+	allGameObjects.emplace_back("Plane", "./Assets/models/Essentials/Plane.glb", shaderProgram, camera);
 
+	GameObject& cirno = allGameObjects[0];
+	cirno.transform.position = glm::vec3(25.0f, -1.0f, 25.0f);
+	cirno.transform.scale = glm::vec3(0.5f);
+	cirno.transform.rotation = glm::vec3(0.0f, 45.0f, 0.0f);
+	cirno.transform.UpdateMatrix();
+
+	GameObject& gooboo = allGameObjects[1];
+	gooboo.transform.position = glm::vec3(0.0f);
+	gooboo.transform.scale = glm::vec3(0.05f);
+	gooboo.transform.rotation = glm::vec3(0.0f, 45.0f, 0.0f);
+	gooboo.transform.UpdateMatrix();
+
+	GameObject& boogoo = allGameObjects[2];
+	boogoo.transform.position = glm::vec3(-25.0f, -1.0f, -25.0f);
+	boogoo.transform.scale = glm::vec3(0.5f);
+	boogoo.transform.rotation = glm::vec3(0.0f, 45.0f, 0.0f);
+	boogoo.transform.UpdateMatrix();
+
+	GameObject& plane = allGameObjects[3];
+	plane.transform.position = glm::vec3(-50.0f, -25.0f, 0.0f);
+	plane.transform.scale = glm::vec3(5.0f);
+	plane.transform.rotation = glm::vec3(0.0f, 45.0f, 0.0f);
+	plane.transform.UpdateMatrix();
 
 	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
-	glm::mat4 modelMatrix = glm::mat4(1.0f);
-	modelMatrix = glm::translate(modelMatrix, glm::vec3(0.0f, -1.0f, 0.0f)); // bajar para que no flote
-	modelMatrix = glm::rotate(modelMatrix, glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f)); // rotar si hace falta
-	modelMatrix = glm::scale(modelMatrix, glm::vec3(0.25f)); // ¡ESCALA AQUÍ! 0.5f = mitad de tamaño
-
-	glm::mat4 modelMatrix2 = glm::mat4(1.0f);
-	modelMatrix2 = glm::translate(modelMatrix2, glm::vec3(10.0f, -1.0f, 10.0f));
-	modelMatrix2 = glm::rotate(modelMatrix2, glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	modelMatrix2 = glm::scale(modelMatrix2, glm::vec3(0.25f));
-
-	glm::mat4 modelMatrix3 = glm::mat4(1.0f);
-	modelMatrix3 = glm::translate(modelMatrix3, glm::vec3(-10.0f, -1.0f, -10.0f));
-	modelMatrix3 = glm::rotate(modelMatrix3, glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	modelMatrix3 = glm::scale(modelMatrix3, glm::vec3(0.25f));
-
-	glm::mat4 modelMatrix5 = glm::mat4(1.0f);
-	modelMatrix5 = glm::translate(modelMatrix5, glm::vec3(-50.0f, -25.0f, 25.0f));
-	modelMatrix5 = glm::rotate(modelMatrix5, glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-	modelMatrix5 = glm::scale(modelMatrix5, glm::vec3(5.0f));
-
 	
 	// ====================== AUDIO ====================== // 
 
@@ -141,9 +144,14 @@ int main()
 	}*/
 
 	// Sonido de click (uno solo)
+
+	float speed = 5.0f;
+
 	audio.PlaySound("./Assets/audio/Click.wav", 1.0f);
 
 	camera.BackfaceCulling(true, GL_CW);
+
+	camera.isFreeLook = false;
 
 	Editor editor;
 	editor.Init(window);
@@ -161,8 +169,32 @@ int main()
 		{
 			skyboxRotation += 0.0025f * time.deltaTime;
 
-			modelMatrix2 = glm::rotate(modelMatrix2, glm::radians(2.0f), glm::vec3(1.0f, 0.0f, 1.0f));
-			modelMatrix3 = glm::rotate(modelMatrix3, glm::radians(2.0f), glm::vec3(1.0f, 0.0f, 1.0f));
+			boogoo.transform.rotation += glm::vec3(2.0f, 0.0f, 2.0f);
+			boogoo.transform.UpdateMatrix();
+
+			// MOVEMENT & PHYSICS UPDATE
+
+			glm::vec3 forward = gooboo.transform.GetForwardVector();
+			glm::vec3 right = glm::normalize(glm::cross(forward, glm::vec3(0, 1, 0)));
+
+			if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+			{
+				gooboo.transform.position += forward * speed * time.deltaTime;
+			}
+			if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+			{
+				gooboo.transform.position -= forward * speed * time.deltaTime;
+			}
+			if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+			{
+				gooboo.transform.position -= right * speed * time.deltaTime;
+			}
+			if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+			{
+				gooboo.transform.position += right * speed * time.deltaTime;
+			}
+
+			gooboo.transform.UpdateMatrix();
 		}
 
 
@@ -175,7 +207,7 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 		glEnable(GL_DEPTH_TEST);
 	
-		camera.Inputs(window);
+		camera.Inputs(window, &gooboo.transform);
 		int fbWidth, fbHeight;
 		glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
 		framebuffer_size_callback(window, fbWidth, fbHeight); 
@@ -197,25 +229,32 @@ int main()
 
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0xFF);
-		model1.Draw(shaderProgram, camera, modelMatrix);
-		model1.Draw(normalsShader, camera, modelMatrix);
-		model2.Draw(shaderProgram, camera, modelMatrix2);
-		model3.Draw(shaderProgram, camera, modelMatrix3);
-		model5.Draw(shaderProgram, camera, modelMatrix5);
+
+		for (auto& obj : allGameObjects)
+		{
+			if (obj.isActive) 
+		    {
+				obj.transform.UpdateMatrix();
+				obj.Render();
+			}
+		}
 
 		glStencilFunc(GL_NOTEQUAL, 1, 0xFF);
 		glStencilMask(0x00);
 		glDisable(GL_DEPTH_TEST);
 
 		outlineProgram.Activate();
-		glUniform1f(glGetUniformLocation(outlineProgram.ID, "outlineWidth"), 0.025f);  // prueba valores: 0.02f a 0.1f
+		glUniform1f(glGetUniformLocation(outlineProgram.ID, "outlineWidth"), 0.025f);  
 		glUniform3f(glGetUniformLocation(outlineProgram.ID, "outlineColor"), 0.0f, 0.0f, 0.0f); // negro
-		glm::mat4 outlineMatrix = glm::scale(modelMatrix, glm::vec3(1.01f));
-		glm::mat4 outlineMatrix2 = glm::scale(modelMatrix2, glm::vec3(1.01f));
-		glm::mat4 outlineMatrix3 = glm::scale(modelMatrix3, glm::vec3(1.01f));
-		model1.Draw(outlineProgram, camera, outlineMatrix);
-		model2.Draw(outlineProgram, camera, outlineMatrix2);
-		model3.Draw(outlineProgram, camera, outlineMatrix3);
+
+		for (auto& obj : allGameObjects)
+		{
+			if (obj.isActive)
+			{
+				glm::mat4 outlineMat = obj.transform.matrix * glm::scale(glm::mat4(1.0f), glm::vec3(1.01f));
+				obj.model.Draw(outlineProgram, camera, outlineMat);
+			}
+		}
 
 		glStencilMask(0xFF);
 		glStencilFunc(GL_ALWAYS, 0, 0xFF);
@@ -228,7 +267,7 @@ int main()
 		glBindTexture(GL_TEXTURE_2D, postprocess.framebufferTexture);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		editor.CreateGUILayout(window);
+		editor.CreateGUILayout(window, camera);
 	}
 
 	// ====================== CLEANUP ====================== // 

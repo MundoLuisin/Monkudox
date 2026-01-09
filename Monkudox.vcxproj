@@ -163,6 +163,8 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mesh.cpp" />
     <ClCompile Include="model.cpp" />
+    <ClCompile Include="PhysicsManager.cpp" />
+    <ClCompile Include="PhysicsManager.h" />
     <ClCompile Include="Postprocessing.cpp" />
     <ClCompile Include="Postprocessing.h" />
     <ClCompile Include="renderBuffers.cpp" />
@@ -194,6 +196,7 @@
     <ClInclude Include="SkyBox.h" />
     <ClInclude Include="texture.h" />
     <ClInclude Include="Time.h" />
+    <ClInclude Include="Transform.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\default.frag" />

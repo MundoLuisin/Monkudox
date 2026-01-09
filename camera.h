@@ -11,6 +11,7 @@
 #include<glm/gtx/vector_angle.hpp>
 
 #include"shaderClass.h"
+#include "Transform.h"
 
 class Camera
 {
@@ -21,6 +22,7 @@ public:
 	glm::mat4 cameraMatrix = glm::mat4(1.0f);
 
 	bool firstClick = true;
+	bool isFreeLook = true;
 
 	int width;
 	int height;
@@ -32,7 +34,7 @@ public:
 
 	void updateMatrix(float FOVdeg, float nearPlane, float farPlane);
 	void Matrix(Shader& shader, const char* uniform);
-	void Inputs(GLFWwindow* window);
+	void Inputs(GLFWwindow* window, Transform* target = nullptr);
 
 	void BackfaceCulling(bool enable = false, GLenum orderFaceCulling = GL_CCW);
 };

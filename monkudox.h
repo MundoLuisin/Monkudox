@@ -5,6 +5,7 @@
 #include"SkyBox.h"
 #include"Postprocessing.h"
 #include"Time.h"
+#include"PhysicsManager.h"
 
 #include "GameObject.h"
 

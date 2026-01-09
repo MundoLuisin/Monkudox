@@ -1,5 +1,7 @@
 #include "Mesh.h"
 
+// IMPORTANT THIS ARE DRAWING MESHES WITH OUT INSTANCING, TO DRAW WITH INSTANCING JUST CHANGE glDrawElements TO glDrawElementsInstanced AND ADD THE NUMBER OF INSTANCES
+
 Mesh::Mesh(std::vector <Vertex>& vertices, std::vector <GLuint>& indices, std::vector <Texture>& textures)
 {
 	Mesh::vertices = vertices;

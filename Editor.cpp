@@ -18,7 +18,7 @@ void Editor::StartGUILayout()
 	ImGui::NewFrame();
 }
 
-void Editor::CreateGUILayout(GLFWwindow* window)
+void Editor::CreateGUILayout(GLFWwindow* window, Camera& cam)
 {
 	ImGui::Begin("Console");
 	ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
@@ -30,6 +30,9 @@ void Editor::CreateGUILayout(GLFWwindow* window)
 	ImGui::Begin("Scene");
 	if (ImGui::Button(runtimePause ? "Play" : "Pause")) {
 		runtimePause = !runtimePause;
+	}
+	if (ImGui::Button(cam.isFreeLook ? "FreeLookCam" : "FollowCam")) {
+		cam.isFreeLook = !cam.isFreeLook;
 	}
 	ImGui::End();
 

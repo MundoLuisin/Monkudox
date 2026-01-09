@@ -1,4 +1,4 @@
-#include"Camera.h"
+﻿#include"Camera.h"
 
 Camera::Camera(int width, int height, glm::vec3 position)
 {
@@ -23,39 +23,39 @@ void Camera::Matrix(Shader& shader, const char* uniform)
 	glUniformMatrix4fv(glGetUniformLocation(shader.ID, uniform), 1, GL_FALSE, glm::value_ptr(cameraMatrix));
 }
 
-void Camera::Inputs(GLFWwindow* window)
+void Camera::Inputs(GLFWwindow* window, Transform* target)
 {
-	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+	if (isFreeLook)
 	{
-		Position += speed * Orientation;
+		if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+		{
+			Position += speed * Orientation;
+		}
+		if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+		{
+			Position += speed * -glm::normalize(glm::cross(Orientation, Up));
+		}
+		if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+		{
+			Position += speed * -Orientation;
+		}
+		if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+		{
+			Position += speed * glm::normalize(glm::cross(Orientation, Up));
+		}
+		if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+		{
+			speed = 0.3f;
+		}
+		else if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
+		{
+			speed = 0.1f;
+		}
 	}
-	if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+	else if (!isFreeLook && target != nullptr)
 	{
-		Position += speed * -glm::normalize(glm::cross(Orientation, Up));
-	}
-	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-	{
-		Position += speed * -Orientation;
-	}
-	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-	{
-		Position += speed * glm::normalize(glm::cross(Orientation, Up));
-	}
-	if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-	{
-		Position += speed * Up;
-	}
-	if (glfwGetKey(window, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS)
-	{
-		Position += speed * -Up;
-	}
-	if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
-	{
-		speed = 0.3f;
-	}
-	else if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_RELEASE)
-	{
-		speed = 0.1f;
+		Position = target->position - 3.0f * target->GetForwardVector() + glm::vec3(0.0f, 1.5f, 0.0f);
+		target->SetForward(glm::normalize(glm::vec3(Orientation.x, 0.0f, Orientation.z)));
 	}
 
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT) == GLFW_PRESS)

@@ -9,7 +9,7 @@ class Time
 	public:
 	double prevTime = 0.0;
 	double crntTime = 0.0;
-	double deltaTime = 0.0;
+	float deltaTime = 0.0;
 	unsigned int counter = 0;
 
 	void UpdateClock() 
