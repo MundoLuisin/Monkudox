@@ -3,6 +3,7 @@
 #include <string>
 #include "model.h"
 #include "Transform.h"
+#include "Component.h"
 
 class GameObject 
 {
@@ -26,16 +27,17 @@ public:
 
 		// TYPENAMES => COMPONENTS
 		/*
-		template<typename T>
-		T* AddComponent();
+		template<typename T, typename... Args>
+		T* AddComponent(Args&&... args);
 
 		template<typename T>
 		T* GetComponent();
 
 		template<typename T>
-		T* TryGetComponent();*/
-
+		T* TryGetComponent() { return GetComponent<T>(); }
+		*/
 private:
+	   //std::unordered_map<const std::type_info*, std::unique_ptr<Component>> components;
 
 		Shader& shader;
 		Camera& camera;

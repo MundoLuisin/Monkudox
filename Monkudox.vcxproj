@@ -177,6 +177,7 @@
   <ItemGroup>
     <ClInclude Include="AudioManager.h" />
     <ClInclude Include="camera.h" />
+    <ClInclude Include="Component.h" />
     <ClInclude Include="Editor.h" />
     <ClInclude Include="GameObject.h" />
     <ClInclude Include="ImGui\imconfig.h" />
@@ -190,7 +191,7 @@
     <ClInclude Include="ImGui\imstb_truetype.h" />
     <ClInclude Include="mesh.h" />
     <ClInclude Include="model.h" />
-    <ClInclude Include="monkudox.h" />
+    <ClInclude Include="MonkudoxEngine.h" />
     <ClInclude Include="renderBuffers.h" />
     <ClInclude Include="shaderClass.h" />
     <ClInclude Include="SkyBox.h" />

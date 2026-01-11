@@ -1,14 +1,18 @@
-/*#include "../Monkudox.h"
+#include "../MonkudoxEngine.h"
 
-void Monkudox::Awake()
+using namespace MonkudoxEngine;
+
+void GameController::Awake()
 {
+	// Initialize game objects or resources here
 }
 
-void Monkudox::Start()
+void GameController::Start()
 {
-
+	// Initialize game objects or resources here
 }
 
-void Monkudox::Update()
+void GameController::Update()
 {
-}*/
+	// Initialize game objects or resources here
+}

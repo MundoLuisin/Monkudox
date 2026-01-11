@@ -1,7 +1,13 @@
-﻿#include "Editor.h"
-// THIS INCLUDES ARE DANGEROUS AND SHOULD BE CHANGED !!!
-#include "Monkudox.h"
+﻿// THIS INCLUDES ARE DANGEROUS AND SHOULD BE CHANGED !!!
+#include "Editor.h"
+#include "MonkudoxEngine.h"
 #include "Stuff.h"
+#include"Model.h"
+#include"AudioManager.h"
+#include"SkyBox.h"
+#include"Postprocessing.h"
+#include"Time.h"
+#include"PhysicsManager.h"
 
 struct WindowInfo
 {
@@ -28,8 +34,14 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	windowInfo.height = height;
 }
 
+unsigned int samples = 8;
+
+MonkudoxEngine::GameController game;
+
 int main()
 {
+	game.Awake();
+
 	// ====================== INIT ====================== // 
 	glfwInit();
 
@@ -77,12 +89,14 @@ int main()
 	glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
+	glEnable(GL_MULTISAMPLE);
+
 	glEnable(GL_STENCIL_TEST);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
 	// ====================== PRE SETUP ====================== // 
 
-	Postprocessing postprocess(windowInfo.width, windowInfo.height, rectangleVertices);
+	Postprocessing postprocess(windowInfo.width, windowInfo.height, rectangleVertices, samples);
 
 	Camera camera(windowInfo.width, windowInfo.height, glm::vec3(0.0f, 0.0f, 2.0f));
 
@@ -91,32 +105,32 @@ int main()
 
 	Time time;
 
-	std::vector<GameObject>allGameObjects;
+	// ====================== SCENE SETUP ====================== //
 
-	allGameObjects.emplace_back("Cirno", "./Assets/models/1/Cirno.glb", shaderProgram, camera);
-	allGameObjects.emplace_back("Gooboo", "./Assets/models/2/Gooboo.glb", shaderProgram, camera);
-	allGameObjects.emplace_back("Boogoo", "./Assets/models/3/Boogoo.glb", shaderProgram, camera);
-	allGameObjects.emplace_back("Plane", "./Assets/models/Essentials/Plane.glb", shaderProgram, camera);
+	game.allGameObjects.emplace_back("Cirno", "./Assets/models/1/Cirno.glb", shaderProgram, camera);
+	game.allGameObjects.emplace_back("Gooboo", "./Assets/models/2/Gooboo.glb", shaderProgram, camera);
+	game.allGameObjects.emplace_back("Boogoo", "./Assets/models/3/Boogoo.glb", shaderProgram, camera);
+	game.allGameObjects.emplace_back("Plane", "./Assets/models/Essentials/Plane.glb", shaderProgram, camera);
 
-	GameObject& cirno = allGameObjects[0];
+	GameObject& cirno = game.allGameObjects[0];
 	cirno.transform.position = glm::vec3(25.0f, -1.0f, 25.0f);
 	cirno.transform.scale = glm::vec3(0.5f);
 	cirno.transform.rotation = glm::vec3(0.0f, 45.0f, 0.0f);
 	cirno.transform.UpdateMatrix();
 
-	GameObject& gooboo = allGameObjects[1];
+	GameObject& gooboo = game.allGameObjects[1];
 	gooboo.transform.position = glm::vec3(0.0f);
 	gooboo.transform.scale = glm::vec3(0.05f);
 	gooboo.transform.rotation = glm::vec3(0.0f, 45.0f, 0.0f);
 	gooboo.transform.UpdateMatrix();
 
-	GameObject& boogoo = allGameObjects[2];
+	GameObject& boogoo = game.allGameObjects[2];
 	boogoo.transform.position = glm::vec3(-25.0f, -1.0f, -25.0f);
 	boogoo.transform.scale = glm::vec3(0.5f);
 	boogoo.transform.rotation = glm::vec3(0.0f, 45.0f, 0.0f);
 	boogoo.transform.UpdateMatrix();
 
-	GameObject& plane = allGameObjects[3];
+	GameObject& plane = game.allGameObjects[3];
 	plane.transform.position = glm::vec3(-50.0f, -25.0f, 0.0f);
 	plane.transform.scale = glm::vec3(5.0f);
 	plane.transform.rotation = glm::vec3(0.0f, 45.0f, 0.0f);
@@ -156,10 +170,14 @@ int main()
 	Editor editor;
 	editor.Init(window);
 
+	game.Start();
+
 	// ====================== GAME LOOP ====================== // 
 
 	while (!glfwWindowShouldClose(window))
 	{
+		game.Update();
+
 		time.UpdateClock();
 		time.FPS_window(window);
 
@@ -199,6 +217,9 @@ int main()
 
 
 		glBindFramebuffer(GL_FRAMEBUFFER, postprocess.FBO);
+		glBindFramebuffer(GL_FRAMEBUFFER, postprocess.postProcessingFBO);
+		glBlitFramebuffer(0, 0, windowInfo.width, windowInfo.height, 0, 0, windowInfo.width, windowInfo.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
 		GLenum drawBuffers[] = { GL_COLOR_ATTACHMENT0 };
 		glDrawBuffers(1, drawBuffers);
 
@@ -230,7 +251,7 @@ int main()
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0xFF);
 
-		for (auto& obj : allGameObjects)
+		for (auto& obj : game.allGameObjects)
 		{
 			if (obj.isActive) 
 		    {
@@ -247,7 +268,7 @@ int main()
 		glUniform1f(glGetUniformLocation(outlineProgram.ID, "outlineWidth"), 0.025f);  
 		glUniform3f(glGetUniformLocation(outlineProgram.ID, "outlineColor"), 0.0f, 0.0f, 0.0f); // negro
 
-		for (auto& obj : allGameObjects)
+		for (auto& obj : game.allGameObjects)
 		{
 			if (obj.isActive)
 			{
@@ -265,6 +286,7 @@ int main()
 		glBindVertexArray(postprocess.rectVAO);
 		glDisable(GL_DEPTH_TEST); 
 		glBindTexture(GL_TEXTURE_2D, postprocess.framebufferTexture);
+		glBindTexture(GL_TEXTURE_2D, postprocess.postProcessingTexture);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		editor.CreateGUILayout(window, camera);

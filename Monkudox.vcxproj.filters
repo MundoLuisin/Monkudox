@@ -119,7 +119,7 @@
     <ClInclude Include="GameObject.h">
       <Filter>Headers</Filter>
     </ClInclude>
-    <ClInclude Include="monkudox.h">
+    <ClInclude Include="MonkudoxEngine.h">
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="SkyBox.h">
@@ -159,6 +159,9 @@
       <Filter>Headers</Filter>
     </ClInclude>
     <ClInclude Include="Transform.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Component.h">
       <Filter>Headers</Filter>
     </ClInclude>
   </ItemGroup>
