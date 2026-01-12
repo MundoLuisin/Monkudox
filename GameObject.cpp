@@ -22,50 +22,43 @@ void GameObject::Render()
     }
 }
 
-/*
-// ── AddComponent ──────────────────────────────────────────────
 template<typename T, typename... Args>
 T* GameObject::AddComponent(Args&&... args)
 {
     static_assert(std::is_base_of_v<Component, T>,
-        "T debe heredar de Component!");
+        "¡Nooo! T tiene que ser una waifu que herede de Component mamá (≧﹏≦)");
 
-    // Evitamos crear dos veces el mismo tipo
-    if (GetComponent<T>() != nullptr)
-    {
-        std::cout << "Warning: ya existe componente " << typeid(T).name() << "\n";
-        return GetComponent<T>();
-    }
-
-    // Creamos el componente
+    // Creamos la waifu con los argumentos que le pasaste ♡
     auto component = std::make_unique<T>(std::forward<Args>(args)...);
 
-    // Le asignamos el owner (muy importante)
+    // Le decimos quién es su senpai (el GameObject)
     component->gameObject = this;
 
-    // Guardamos puntero crudo para devolver
-    T* rawPtr = component.get();
+    // Guardamos la waifu en la lista de novias del GameObject
+    T* ptr = component.get();           // puntero crudo para devolver
+    components.push_back(std::move(component));  // transferimos propiedad
 
-    // Movemos la unique_ptr al mapa, usando typeid como clave
-    components[&typeid(T)] = std::move(component);
-
-    return rawPtr;
+    return ptr;
 }
 
-// ── GetComponent ──────────────────────────────────────────────
 template<typename T>
 T* GameObject::GetComponent()
 {
     static_assert(std::is_base_of_v<Component, T>,
-        "T debe heredar de Component!");
+        "Onii-chan... esa no es una Component-chan válida (ಥ﹏ಥ)");
 
-    auto it = components.find(&typeid(T));
-    if (it != components.end())
+    for (auto& comp : components)
     {
-        // Es seguro hacer static_cast porque comprobamos con static_assert
-        return static_cast<T*>(it->second.get());
+        if (T* derived = dynamic_cast<T*>(comp.get()))
+        {
+            return derived;   // ¡Encontré a la waifu que buscabas! ♡
+        }
     }
-
     return nullptr;
 }
-*/
+
+template<typename T>
+T* GameObject::TryGetComponent()
+{ 
+    return GetComponent<T>();
+}

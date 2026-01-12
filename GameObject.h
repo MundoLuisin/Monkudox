@@ -26,7 +26,6 @@ public:
 		explicit GameObject(const std::string& objName, const char* path, Shader& programShader, Camera& globalCamera);
 
 		// TYPENAMES => COMPONENTS
-		/*
 		template<typename T, typename... Args>
 		T* AddComponent(Args&&... args);
 
@@ -34,10 +33,10 @@ public:
 		T* GetComponent();
 
 		template<typename T>
-		T* TryGetComponent() { return GetComponent<T>(); }
-		*/
+		T* TryGetComponent();
+		
 private:
-	   //std::unordered_map<const std::type_info*, std::unique_ptr<Component>> components;
+	    std::vector<std::unique_ptr<Component>> components;
 
 		Shader& shader;
 		Camera& camera;
