@@ -211,6 +211,11 @@
     <None Include="Shaders\normals.geom" />
     <None Include="Shaders\outline.frag" />
     <None Include="Shaders\outline.vert" />
+    <None Include="Shaders\shadowcubemap.frag" />
+    <None Include="Shaders\shadowcubemap.geom" />
+    <None Include="Shaders\shadowcubemap.vert" />
+    <None Include="Shaders\shadowmap.frag" />
+    <None Include="Shaders\shadowmap.vert" />
     <None Include="Shaders\skybox.frag" />
     <None Include="Shaders\skybox.vert" />
   </ItemGroup>

@@ -205,5 +205,20 @@
     <None Include="Shaders\skybox.vert">
       <Filter>Archivos de recursos</Filter>
     </None>
+    <None Include="Shaders\shadowmap.frag">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="Shaders\shadowmap.vert">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="Shaders\shadowcubemap.frag">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="Shaders\shadowcubemap.geom">
+      <Filter>Archivos de recursos</Filter>
+    </None>
+    <None Include="Shaders\shadowcubemap.vert">
+      <Filter>Archivos de recursos</Filter>
+    </None>
   </ItemGroup>
 </Project>

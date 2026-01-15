@@ -8,6 +8,7 @@ out vec3 crntPos;
 out vec3 Normal;
 out vec3 color;
 out vec2 texCoord;
+out vec4 fragPosLight;
 
 out DATA
 {
@@ -19,6 +20,7 @@ out DATA
 
 uniform mat4 camMatrix;
 uniform mat4 model;
+uniform mat4 lightProjection;
 
 void main()
 {
@@ -27,6 +29,8 @@ void main()
     Normal = mat3(model) * aNormal;
     color = aColor;
     texCoord = vec2(aTex.x, 1.0 - aTex.y);
+
+    fragPosLight = lightProjection * vec4(crntPos, 1.0f);
 
     gl_Position = worldPos;  // Output world-space pos (geom will project it)
 

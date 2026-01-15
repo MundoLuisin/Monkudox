@@ -70,6 +70,8 @@ int main()
 	Shader outlineProgram("./Shaders/outline.vert", "./Shaders/outline.frag");
 	Shader framebufferProgram("./Shaders/framebuffer.vert", "./Shaders/framebuffer.frag");
 	Shader skyboxShader("./Shaders/skybox.vert", "./Shaders/skybox.frag");
+	Shader shadowMapProgram("./Shaders/shadowmap.vert", "./Shaders/shadowmap.frag");
+	Shader shadowCubeMapProgram("./Shaders/shadowcubemap.vert", "./Shaders/shadowcubemap.frag", "./Shaders/shadowcubemap.geom");
 
 
 	glm::vec4 lightColor = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -90,6 +92,8 @@ int main()
 	glDepthFunc(GL_LESS);
 
 	glEnable(GL_MULTISAMPLE);
+
+	glEnable(GL_FRAMEBUFFER_SRGB);
 
 	glEnable(GL_STENCIL_TEST);
 	glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
@@ -159,6 +163,88 @@ int main()
 
 	// Sonido de click (uno solo)
 
+	// ====================== SHADOWS ====================== // 
+
+	unsigned int shadowMapFBO;
+	glGenFramebuffers(1, &shadowMapFBO);
+	unsigned int shadowMapWidth = 2048, shadowMapHeight = 2048;
+	unsigned int shadowMap;
+	glGenTextures(1, &shadowMap);
+	glBindTexture(GL_TEXTURE_2D, shadowMap);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, shadowMapWidth, shadowMapHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	// Prevents darkness outside the frustrum
+	float clampColor[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, clampColor);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowMapFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowMap, 0);
+	// Needed since we don't touch the color buffer
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	float farPlane = 150.0f;
+	glm::mat4 orthgonalProjection = glm::ortho(-35.0f, 35.0f, -35.0f, 35.0f, 0.1f, farPlane);
+	glm::mat4 perspectiveProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, farPlane);
+	glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+	glm::mat4 lightProjection = perspectiveProjection * lightView;
+
+
+	shadowMapProgram.Activate();
+	glUniformMatrix4fv(glGetUniformLocation(shadowMapProgram.ID, "lightProjection"), 1, GL_FALSE, glm::value_ptr(lightProjection));
+
+	unsigned int pointShadowMapFBO;
+	glGenFramebuffers(1, &pointShadowMapFBO);
+
+	// Texture for Cubemap Shadow Map FBO
+	unsigned int depthCubemap;
+	glGenTextures(1, &depthCubemap);
+
+	glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
+	for (unsigned int i = 0; i < 6; ++i)
+		glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT,
+			shadowMapWidth, shadowMapHeight, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, pointShadowMapFBO);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depthCubemap, 0);
+	glDrawBuffer(GL_NONE);
+	glReadBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
+	// Matrices needed for the light's perspective on all faces of the cubemap
+	glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, farPlane);
+	glm::mat4 shadowTransforms[] =
+	{
+		shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
+		shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(-1.0, 0.0, 0.0), glm::vec3(0.0, -1.0, 0.0)),
+		shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 1.0, 0.0), glm::vec3(0.0, 0.0, 1.0)),
+		shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, -1.0, 0.0), glm::vec3(0.0, 0.0, -1.0)),
+		shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, 1.0), glm::vec3(0.0, -1.0, 0.0)),
+		shadowProj * glm::lookAt(lightPos, lightPos + glm::vec3(0.0, 0.0, -1.0), glm::vec3(0.0, -1.0, 0.0))
+	};
+	// Export all matrices to shader
+	shadowCubeMapProgram.Activate();
+	glUniformMatrix4fv(glGetUniformLocation(shadowCubeMapProgram.ID, "shadowMatrices[0]"), 1, GL_FALSE, glm::value_ptr(shadowTransforms[0]));
+	glUniformMatrix4fv(glGetUniformLocation(shadowCubeMapProgram.ID, "shadowMatrices[1]"), 1, GL_FALSE, glm::value_ptr(shadowTransforms[1]));
+	glUniformMatrix4fv(glGetUniformLocation(shadowCubeMapProgram.ID, "shadowMatrices[2]"), 1, GL_FALSE, glm::value_ptr(shadowTransforms[2]));
+	glUniformMatrix4fv(glGetUniformLocation(shadowCubeMapProgram.ID, "shadowMatrices[3]"), 1, GL_FALSE, glm::value_ptr(shadowTransforms[3]));
+	glUniformMatrix4fv(glGetUniformLocation(shadowCubeMapProgram.ID, "shadowMatrices[4]"), 1, GL_FALSE, glm::value_ptr(shadowTransforms[4]));
+	glUniformMatrix4fv(glGetUniformLocation(shadowCubeMapProgram.ID, "shadowMatrices[5]"), 1, GL_FALSE, glm::value_ptr(shadowTransforms[5]));
+	glUniform3f(glGetUniformLocation(shadowCubeMapProgram.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+	glUniform1f(glGetUniformLocation(shadowCubeMapProgram.ID, "farPlane"), farPlane);
+
+	// ====================== ÑAM ÑAM ====================== // 
+
 	float speed = 5.0f;
 
 	audio.PlaySound("./Assets/audio/Click.wav", 1.0f);
@@ -215,6 +301,23 @@ int main()
 			gooboo.transform.UpdateMatrix();
 		}
 
+		glEnable(GL_DEPTH_TEST);
+
+		glViewport(0, 0, shadowMapWidth, shadowMapHeight);
+		glBindFramebuffer(GL_FRAMEBUFFER, pointShadowMapFBO);
+		glClear(GL_DEPTH_BUFFER_BIT);
+
+		for (auto& obj : game.allGameObjects)
+		{
+			if (obj.isActive)
+			{
+				obj.model.Draw(shadowCubeMapProgram, camera, obj.transform.matrix);
+			}
+		}
+
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+		glViewport(0, 0, windowInfo.width, windowInfo.height);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, postprocess.FBO);
 		glBindFramebuffer(GL_FRAMEBUFFER, postprocess.postProcessingFBO);
@@ -233,7 +336,7 @@ int main()
 		glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
 		framebuffer_size_callback(window, fbWidth, fbHeight); 
 
-		camera.updateMatrix(45.0f, 0.1f, 100.0f);
+		camera.updateMatrix(45.0f, 0.1f, farPlane);
 
 		glDepthFunc(GL_LEQUAL);
 		skyboxShader.Activate();
@@ -251,12 +354,20 @@ int main()
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0xFF);
 
+		shaderProgram.Activate();
+		glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "lightProjection"), 1, GL_FALSE, glm::value_ptr(lightProjection));
+		glUniform1f(glGetUniformLocation(shaderProgram.ID, "farPlane"), farPlane);
+
+		glActiveTexture(GL_TEXTURE0 + 2);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
+		glUniform1i(glGetUniformLocation(shaderProgram.ID, "shadowCubeMap"), 2);
+
 		for (auto& obj : game.allGameObjects)
 		{
 			if (obj.isActive) 
 		    {
 				obj.transform.UpdateMatrix();
-				obj.Render();
+				obj.model.Draw(shaderProgram, camera, obj.transform.matrix);
 			}
 		}
 
@@ -282,6 +393,7 @@ int main()
 		glEnable(GL_DEPTH_TEST);
 
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glDisable(GL_FRAMEBUFFER_SRGB);
 		framebufferProgram.Activate();
 		glBindVertexArray(postprocess.rectVAO);
 		glDisable(GL_DEPTH_TEST); 
@@ -298,7 +410,6 @@ int main()
 	editor.Delete();
 	
 	//ma_sound_uninit(&backgroundMusic);
-
 	shaderProgram.Delete(); 
 	normalsShader.Delete();
 	outlineProgram.Delete();
