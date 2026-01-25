@@ -1,18 +1,28 @@
-﻿// THIS INCLUDES ARE DANGEROUS AND SHOULD BE CHANGED !!!
-#include "Editor.h"
+﻿#include "Editor.h"
 #include "MonkudoxEngine.h"
 #include "Stuff.h"
-#include"Model.h"
-#include"AudioManager.h"
-#include"SkyBox.h"
-#include"Postprocessing.h"
-#include"Time.h"
-#include"PhysicsManager.h"
+#include "Model.h"
+#include "AudioManager.h"
+#include "SkyBox.h"
+#include "Postprocessing.h"
+#include "Time.h"
+#include "PhysicsWorld.h"
+#include "Collider.h"
+#include "RigidBody.h"
+
+#include <Jolt/Jolt.h>
+#include <Jolt/Physics/Collision/Shape/BoxShape.h>
 
 struct WindowInfo
 {
 	int width;
 	int height;
+};
+
+enum QualityLevel {
+	LOW = 1,
+	MEDIUM = 2,
+	HIGH = 3
 };
 
 
@@ -34,13 +44,52 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 	windowInfo.height = height;
 }
 
-unsigned int samples = 8;
+unsigned int samples;
+unsigned int shadowMapWidth;
+unsigned int shadowMapHeight;
+
+void QualityChange(QualityLevel quality)
+{
+	switch (quality)
+	{
+	case LOW:
+		samples = 4;
+		shadowMapWidth = 1024;
+		shadowMapHeight = 1024;
+		break;
+	case MEDIUM:
+		samples = 9;
+		shadowMapWidth = 2048;
+		shadowMapHeight = 2048;
+		break;
+	case HIGH:
+		samples = 16;
+		shadowMapWidth = 4096;
+		shadowMapHeight = 4096;
+		break;
+	default:
+		std::cout << "FATAL ERROR QUALITY NOT LINKED";
+		break;
+	}
+}
 
 MonkudoxEngine::GameController game;
 
 int main()
 {
 	game.Awake();
+	QualityChange(LOW);
+
+	// Init global de Jolt (solo una vez)
+	JPH::Trace = [](const char* inFMT, ...) {
+		va_list list;
+		va_start(list, inFMT);
+		vprintf(inFMT, list);
+		va_end(list);
+		};
+	JPH::RegisterDefaultAllocator();
+	JPH::Factory::sInstance = new JPH::Factory();
+	JPH::RegisterTypes();
 
 	// ====================== INIT ====================== // 
 	glfwInit();
@@ -60,12 +109,25 @@ int main()
 	}
 
 	glfwMakeContextCurrent(window);
+	glfwSwapInterval(0);
 	gladLoadGL();
 	glViewport(0, 0, windowInfo.width, windowInfo.height);
 
+	GLFWimage icon;
+	icon.pixels = stbi_load("./Assets/img/icon.png", &icon.width, &icon.height, nullptr, 4);
+	glfwSetWindowIcon(window, 1, &icon);
+    stbi_image_free(icon.pixels);
+
+	PhysicsWorld physicsWorld;
+
 	// ====================== SAHDERS & MESH ====================== // 
 
-	Shader shaderProgram("./Shaders/default.vert", "./Shaders/default.frag", "./Shaders/default.geom");
+	Shader* shaderProgram;
+	Shader lit("./Shaders/default.vert", "./Shaders/lit.frag", "./Shaders/default.geom");
+	Shader ecatepec("./Shaders/default.vert", "./Shaders/toon.frag", "./Shaders/default.geom");
+
+	shaderProgram = &ecatepec;
+
 	Shader normalsShader("./Shaders/default.vert", "./Shaders/normals.frag", "./Shaders/normals.geom");
 	Shader outlineProgram("./Shaders/outline.vert", "./Shaders/outline.frag");
 	Shader framebufferProgram("./Shaders/framebuffer.vert", "./Shaders/framebuffer.frag");
@@ -79,9 +141,9 @@ int main()
 	glm::mat4 lightModel = glm::mat4(1.0f);
 	lightModel = glm::translate(lightModel, lightPos);
 
-	shaderProgram.Activate();
-	glUniform4f(glGetUniformLocation(shaderProgram.ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
-	glUniform3f(glGetUniformLocation(shaderProgram.ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
+	shaderProgram->Activate();
+	glUniform4f(glGetUniformLocation(shaderProgram->ID, "lightColor"), lightColor.x, lightColor.y, lightColor.z, lightColor.w);
+	glUniform3f(glGetUniformLocation(shaderProgram->ID, "lightPos"), lightPos.x, lightPos.y, lightPos.z);
 	framebufferProgram.Activate();
 	glUniform1i(glGetUniformLocation(framebufferProgram.ID, "screenTexture"), 0);
 	skyboxShader.Activate();
@@ -140,7 +202,14 @@ int main()
 	plane.transform.rotation = glm::vec3(0.0f, 45.0f, 0.0f);
 	plane.transform.UpdateMatrix();
 
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+	// ====================== PHYSICS ====================== //
+
+	Collider goobooCollider(new JPH::BoxShape(JPH::Vec3(0.5f, 1.0f, 0.5f))); // ajusta tamaño según modelo
+	RigidBody goobooBody(&physicsWorld, goobooCollider, JPH::Vec3(gooboo.transform.position.x, gooboo.transform.position.y, gooboo.transform.position.z), false);
+
+	Collider planeCollider(new JPH::BoxShape(JPH::Vec3(100.0f, 1.0f, 100.0f)));
+	RigidBody planeBody(&physicsWorld, planeCollider, JPH::Vec3(plane.transform.position.x, plane.transform.position.y, plane.transform.position.z), true);
+
 	
 	// ====================== AUDIO ====================== // 
 
@@ -167,7 +236,7 @@ int main()
 
 	unsigned int shadowMapFBO;
 	glGenFramebuffers(1, &shadowMapFBO);
-	unsigned int shadowMapWidth = 2048, shadowMapHeight = 2048;
+
 	unsigned int shadowMap;
 	glGenTextures(1, &shadowMap);
 	glBindTexture(GL_TEXTURE_2D, shadowMap);
@@ -220,7 +289,6 @@ int main()
 	glReadBuffer(GL_NONE);
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-
 	// Matrices needed for the light's perspective on all faces of the cubemap
 	glm::mat4 shadowProj = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, farPlane);
 	glm::mat4 shadowTransforms[] =
@@ -245,13 +313,15 @@ int main()
 
 	// ====================== ÑAM ÑAM ====================== // 
 
-	float speed = 5.0f;
+	float speed = 50.0f;
 
 	audio.PlaySound("./Assets/audio/Click.wav", 1.0f);
 
 	camera.BackfaceCulling(true, GL_CW);
 
 	camera.isFreeLook = false;
+
+	camera.renderShadows = false;
 
 	Editor editor;
 	editor.Init(window);
@@ -267,6 +337,8 @@ int main()
 		time.UpdateClock();
 		time.FPS_window(window);
 
+		physicsWorld.Step(time.deltaTime);
+
 		editor.StartGUILayout();
 
 		if (editor.runtimePause)
@@ -275,43 +347,70 @@ int main()
 
 			boogoo.transform.rotation += glm::vec3(2.0f, 0.0f, 2.0f);
 			boogoo.transform.UpdateMatrix();
+			
+			physicsWorld.SetGravity(JPH::Vec3(0.0f, -9.81f, 0.0f));
 
-			// MOVEMENT & PHYSICS UPDATE
+			JPH::BodyInterface& bodyInterface = physicsWorld.GetSystem().GetBodyInterface();
+			JPH::BodyID goobooID = goobooBody.GetBodyID();
 
+			// 1. Obtener vectores de dirección DESDE TU TRANSFORM
+			// Usamos la rotación actual del personaje para saber hacia dónde es "adelante"
 			glm::vec3 forward = gooboo.transform.GetForwardVector();
-			glm::vec3 right = glm::normalize(glm::cross(forward, glm::vec3(0, 1, 0)));
+			// Proyectamos a XZ para que no intente volar si el modelo está algo inclinado
+			forward.y = 0.0f;
+			forward = glm::normalize(forward);
 
-			if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+			// Calculamos el vector derecha (perpendicular al forward y al eje Y)
+			glm::vec3 right = glm::normalize(glm::cross(forward, glm::vec3(0.0f, 1.0f, 0.0f)));
+
+			// 2. Calcular dirección de movimiento según teclas
+			glm::vec3 moveDir(0.0f);
+			if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) moveDir += forward;
+			if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) moveDir -= forward;
+			if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) moveDir -= right;
+			if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) moveDir += right;
+
+			if (glm::length(moveDir) > 0.0f)
+				moveDir = glm::normalize(moveDir);
+
+			// 3. Aplicar a Jolt (Velocidad constante, no posición manual)
+			JPH::Vec3 currentVel = bodyInterface.GetLinearVelocity(goobooID);
+			float movementSpeed = 15.0f;
+
+			JPH::Vec3 newVel(moveDir.x * movementSpeed, currentVel.GetY(), moveDir.z * movementSpeed);
+
+			// Lógica de Salto
+			if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS && std::abs(currentVel.GetY()) < 0.05f)
 			{
-				gooboo.transform.position += forward * speed * time.deltaTime;
-			}
-			if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-			{
-				gooboo.transform.position -= forward * speed * time.deltaTime;
-			}
-			if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-			{
-				gooboo.transform.position -= right * speed * time.deltaTime;
-			}
-			if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-			{
-				gooboo.transform.position += right * speed * time.deltaTime;
+				newVel.SetY(8.0f); // Fuerza de salto
 			}
 
+			bodyInterface.SetLinearVelocity(goobooID, newVel);
+			bodyInterface.ActivateBody(goobooID);
+
+			// 4. EL PASO CRUCIAL: Sincronizar Jolt -> Transform
+			// Aquí es donde evitamos que el modelo "se pierda" o vaya a otra velocidad
+			JPH::Vec3 physicsPos = bodyInterface.GetPosition(goobooID);
+			gooboo.transform.position = glm::vec3(physicsPos.GetX(), physicsPos.GetY(), physicsPos.GetZ());
+
+			// Actualizar matriz para el renderizado
 			gooboo.transform.UpdateMatrix();
 		}
 
 		glEnable(GL_DEPTH_TEST);
 
-		glViewport(0, 0, shadowMapWidth, shadowMapHeight);
-		glBindFramebuffer(GL_FRAMEBUFFER, pointShadowMapFBO);
-		glClear(GL_DEPTH_BUFFER_BIT);
+		if(camera.renderShadows)
+		{ 
+			glViewport(0, 0, shadowMapWidth, shadowMapHeight);
+			glBindFramebuffer(GL_FRAMEBUFFER, pointShadowMapFBO);
+			glClear(GL_DEPTH_BUFFER_BIT);
 
-		for (auto& obj : game.allGameObjects)
-		{
-			if (obj.isActive)
+			for (auto& obj : game.allGameObjects)
 			{
-				obj.model.Draw(shadowCubeMapProgram, camera, obj.transform.matrix);
+				if (obj.isActive && obj.meshRenderer.castShadows)
+				{
+					obj.model.Draw(shadowCubeMapProgram, camera, obj.transform.matrix);
+				}
 			}
 		}
 
@@ -354,20 +453,24 @@ int main()
 		glStencilFunc(GL_ALWAYS, 1, 0xFF);
 		glStencilMask(0xFF);
 
-		shaderProgram.Activate();
-		glUniformMatrix4fv(glGetUniformLocation(shaderProgram.ID, "lightProjection"), 1, GL_FALSE, glm::value_ptr(lightProjection));
-		glUniform1f(glGetUniformLocation(shaderProgram.ID, "farPlane"), farPlane);
+		shaderProgram->Activate();
+		glUniformMatrix4fv(glGetUniformLocation(shaderProgram->ID, "lightProjection"), 1, GL_FALSE, glm::value_ptr(lightProjection));
+		glUniform1f(glGetUniformLocation(shaderProgram->ID, "farPlane"), farPlane);
+		glUniform1i(glGetUniformLocation(shaderProgram->ID, "renderShadows"), camera.renderShadows);
 
-		glActiveTexture(GL_TEXTURE0 + 2);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
-		glUniform1i(glGetUniformLocation(shaderProgram.ID, "shadowCubeMap"), 2);
+		if (camera.renderShadows)
+		{
+			glActiveTexture(GL_TEXTURE0 + 2);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, depthCubemap);
+			glUniform1i(glGetUniformLocation(shaderProgram->ID, "shadowCubeMap"), 2);
+		}
 
 		for (auto& obj : game.allGameObjects)
 		{
 			if (obj.isActive) 
 		    {
 				obj.transform.UpdateMatrix();
-				obj.model.Draw(shaderProgram, camera, obj.transform.matrix);
+				obj.model.Draw(*shaderProgram, camera, obj.transform.matrix);
 			}
 		}
 
@@ -410,7 +513,7 @@ int main()
 	editor.Delete();
 	
 	//ma_sound_uninit(&backgroundMusic);
-	shaderProgram.Delete(); 
+	shaderProgram->Delete();
 	normalsShader.Delete();
 	outlineProgram.Delete();
 	framebufferProgram.Delete();

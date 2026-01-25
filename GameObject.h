@@ -4,6 +4,7 @@
 #include "model.h"
 #include "Transform.h"
 #include "Component.h"
+#include "MeshRenderer.h"
 
 class GameObject 
 {
@@ -11,6 +12,7 @@ public:
 		// INFO AND PROPERTIES
 		std::string name;
 		Transform transform;
+		MeshRenderer meshRenderer;
 		Model model;
 		bool isActive;
 
@@ -23,7 +25,7 @@ public:
 		void Render();
 
 		// CONSTRUCTOR 
-		explicit GameObject(const std::string& objName, const char* path, Shader& programShader, Camera& globalCamera);
+		explicit GameObject(const std::string& objName, const char* path, Shader* programShader, Camera& globalCamera);
 
 		// TYPENAMES => COMPONENTS
 		template<typename T, typename... Args>
@@ -38,6 +40,6 @@ public:
 private:
 	    std::vector<std::unique_ptr<Component>> components;
 
-		Shader& shader;
+		Shader* shader;
 		Camera& camera;
 };

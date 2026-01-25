@@ -5,7 +5,7 @@ void GameObject::SetActive(bool active)
 	isActive = active;
 }
 
-GameObject::GameObject(const std::string& objName, const char* path, Shader& programShader, Camera& globalCamera)
+GameObject::GameObject(const std::string& objName, const char* path, Shader* programShader, Camera& globalCamera)
     : name(objName),
     shader(programShader),
     camera(globalCamera),
@@ -18,7 +18,7 @@ void GameObject::Render()
 {
     if(isActive)
     { 
-		model.Draw(shader, camera, transform.matrix);
+		model.Draw(*shader, camera, transform.matrix);
     }
 }
 

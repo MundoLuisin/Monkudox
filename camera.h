@@ -30,6 +30,8 @@ public:
 	float speed = 0.1f;
 	float sensitivity = 100.0f;
 
+	bool renderShadows = false;
+
 	Camera(int width, int height, glm::vec3 position);
 
 	void updateMatrix(float FOVdeg, float nearPlane, float farPlane);
